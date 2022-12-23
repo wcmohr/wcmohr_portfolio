@@ -19,11 +19,6 @@ One of the best ways to get feedback on your ideas quickly is to share them with
 - **Goal**: Share three potential topics and/or potential sources of data.
 - **Due**: See Google Classroom.
 
-### **Capstone, Part 1.5:**
-
-In [this Google Sheet](link to follow) share your **one-sentence** problem statement **and** whether you have your dataset in hand.
-- **Due**: See Google Classroom.
-
 ### **[Capstone, Part 2: Problem Statement + EDA](./part_02/)**
 
 For Part 2, provide a clear statement of the problem that you have chosen and an overview of your approach to solving that problem. Summarize your objectives, goals & success metrics, and any risks & assumptions. Outline your proposed methods and models, perform your initial EDA, and summarize the process. **Your data should be in hand by this point in the process!**
