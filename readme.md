@@ -21,7 +21,7 @@ One of the best ways to get feedback on your ideas quickly is to share them with
 
 ### **Capstone, Part 1.5:**
 
-In [this Google Sheet](https://docs.google.com/spreadsheets/d/1OShtZSiaWIzLOJVVRs8yEkHNLqvNa4Sps4Jj7D5OQaM/edit?usp=sharing) share your **one-sentence** problem statement **and** whether you have your dataset in hand.
+In [this Google Sheet](link to follow) share your **one-sentence** problem statement **and** whether you have your dataset in hand.
 - **Due**: See Google Classroom.
 
 ### **[Capstone, Part 2: Problem Statement + EDA](./part_02/)**
