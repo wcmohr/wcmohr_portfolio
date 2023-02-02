@@ -1,7 +1,28 @@
 # epoch is the most current version of the function and will be called
 # in the main notebook.
-import numpy as np
+import numpy as np  # numpy will be used for vectorized calculations.
+import sys
+sys.path.append('..')
 from pyglicko2.glicko2 import Player
+
+class eloPlayer:
+    # initialize the update rate
+    _k = 16 
+    def getRating(self):
+        return self.__rating
+    def setRating(self, rating):
+        self.__rating = rating
+    def __init__(self, rating = 1500):
+        self.__rating = rating
+    def update_player(self, rating_list, outcome_list):
+        rating_list = np.array(rating_list).astype(float) # avoid exponentiation of int 
+        # by negative value error.
+        n = len(rating_list)
+        # calculate expected wins
+        expected_wins = np.divide(1,
+                                  (1 + np.power(10,
+                                                rating_list-self.__rating)/400))
+        self.__rating = self.__rating + _k*(outcome_list - expected_wins)
 
 def epoch(matches, players_dict):
     '''Take in a dataframe with matches, a list of players, a dictionary of players with the elements
