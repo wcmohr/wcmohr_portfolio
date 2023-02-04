@@ -1,12 +1,13 @@
 # epoch is the most current version of the function and will be called
 # in the main notebook.
 import numpy as np  # numpy will be used for vectorized calculations.
+import pandas as pd
 import sys
 sys.path.append('..')
 from pyglicko2.glicko2 import Player
 from datetime import datetime, timedelta
 
-class eloPlayer:
+class PlayerElo:
     # initialize the update rate
     _k = 16 
     def getRating(self):
@@ -18,13 +19,12 @@ class eloPlayer:
     def update_player(self, rating_list, outcome_list):
         rating_list = np.array(rating_list).astype(float) # avoid exponentiation of int 
         # by negative value error.
+        _k = self._k
         n = len(rating_list)
         # calculate expected wins
-        expected_wins = np.divide(1,
-                                  (1 + np.power(10,
-                                                rating_list-self.__rating)/400))
-        self.__rating = self.__rating + _k*(outcome_list - expected_wins)
-
+        expected_wins = np.sum(np.divide(1,(1 + np.power(10,(rating_list-self.__rating)/400))))
+        actual_wins = np.sum(np.array(outcome_list))
+        self.__rating = self.__rating + _k*(actual_wins - expected_wins)
 
 def epochElo(matches, players_dict, cutoff_date):
     '''Take in a dataframe with matches, a list of players, a dictionary of players 
@@ -52,6 +52,7 @@ def epochElo(matches, players_dict, cutoff_date):
     # determine who competed and who didn't
     players_dnc = list(set(players_list) - set(players))
     players_compete = list(set(players_list)-set(players_dnc))
+    
     # fill dictionary with player:(wins,losses), a tuple of list of opponents in wins and losses for each match
     results = {}
     for player in players_compete:
@@ -61,17 +62,15 @@ def epochElo(matches, players_dict, cutoff_date):
         wins_rating = [players_dict[win].getRating() for win in wins]
         outcomes = np.append(np.ones(len(wins)),np.zeros(len(losses)))
         opponent_rating = wins_rating + losses_rating
-        # print(f'{opponent_rating=}')
         results[player] = (opponent_rating, outcomes)
     ratings_timestamp = {}
     # update players
     for player in list(results.keys()):
         (rating_list, outcome_list) = results[player]
-        # print(f'{rating_list=}, {RD_list=}, {outcome_list=}')
         players_dict[player].update_player(rating_list,outcome_list)
         ratings_timestamp[(player,cutoff_date)] = players_dict[player].getRating()
     return players_dict,ratings_timestamp
-    # opponent_indices = matches[matches['loser_id'].str==player '']
+
 def epochsElo(match_history, interval_length = 365):
     '''Calculate the ending rating for each player with the lengh of each epoch being
     a funtion of the interval_length
@@ -107,7 +106,7 @@ def epochsElo(match_history, interval_length = 365):
     ratings_history.update(ratings_timestamp)
     return players_dict,ratings_history
 
-def epochG(matches, players_dict):
+def epochG(matches, players_dict,cutoff_date):
     '''Take in a dataframe with matches, a list of players, a dictionary of players with the elements
     of player list as keys and an instance of the glicko2 class Player() as the value.
     This function wll return the updated players_list and players_dict.'''
@@ -151,14 +150,15 @@ def epochG(matches, players_dict):
         # print(f'{opponent_rating=}')
         opponent_rd = wins_rd + losses_rd
         results[player] = (opponent_rating, opponent_rd, outcomes)
-        
+    
+    ratings_timestamp = {}
     # update players
     for player in list(results.keys()):
         (rating_list, RD_list, outcome_list) = results[player]
-        # print(f'{rating_list=}, {RD_list=}, {outcome_list=}')
         players_dict[player].update_player(rating_list, RD_list, outcome_list)
-    return players_dict
-    # opponent_indices = matches[matches['loser_id'].str==player '']
+        ratings_timestamp[(player,cutoff_date)] = players_dict[player].getRating()
+        
+    return players_dict,ratings_timestamp
 
 def epochsG(match_history, interval_length = 365):
     '''Calculate the ending rating for each player with the lengh of each epoch being
@@ -181,6 +181,7 @@ def epochsG(match_history, interval_length = 365):
     # generator's respective item.
     # print([r for r in epoch_ranges])
     players_dict = {} # instantiate the dictionary that will hold a Player() class for each player.
+    ratings_history = {}
 
     # iteratively re-update for each epoch
     for period in epoch_ranges:
@@ -189,12 +190,30 @@ def epochsG(match_history, interval_length = 365):
                                       (match_history['tourney_date']<period[1])]
         # If the rating period is empty, then adjust the rating deviation of the players.
         if not rating_period.empty:
-            players_dict = epoch(rating_period,players_dict)
+            players_dict,ratings_timestamp = epochG(rating_period,players_dict,period[1])
+            ratings_history.update(ratings_timestamp)
         else:
             for player in players_dict:
                 players_dict[player].did_not_compete()
     # get the final rating period updates (for matches in the final 365 to 729 days).
     rating_period = match_history[match_history['tourney_date']>=epoch_cutoffs[-1]]
-    players_dict = epoch(rating_period,players_dict)
-    return players_dict        
-      
+    
+    players_dict,ratings_timestamp = epochG(rating_period,players_dict,max_date)
+    ratings_history.update(ratings_timestamp)
+    return players_dict, ratings_history
+
+def assembleDf(ratingHistory):
+    '''Generate a DataFrame from the ratingHistory dictionary.
+    The cuttoff dates for each rating period is the rows and 
+    the player ids are the columns with the values being the
+    ratings.'''
+    
+    keys = [key for key in ratingHistory.keys()] # convert to iterable
+    # vals = np.array([ratingHistory[key] for key in keys]) # get corresponding vals
+    cols_players = [key[0] for key in keys] # 
+    rows_times = [key[1] for key in keys]
+    df = pd.DataFrame( columns = cols_players)
+    for key in ratingHistory.keys():
+        r,c = key[1],key[0]
+        df.loc[r,c] = ratingHistory[key]
+    return df
