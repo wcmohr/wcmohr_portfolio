@@ -212,7 +212,7 @@ def assembleDf(ratingHistory):
     # vals = np.array([ratingHistory[key] for key in keys]) # get corresponding vals
     cols_players = [key[0] for key in keys] # 
     rows_times = [key[1] for key in keys]
-    df = pd.DataFrame( columns = cols_players)
+    df = pd.DataFrame( columns = list(set(cols_players)))
     for key in ratingHistory.keys():
         r,c = key[1],key[0]
         df.loc[r,c] = ratingHistory[key]
