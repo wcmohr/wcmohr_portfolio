@@ -87,7 +87,7 @@ def epochsElo(match_history, interval_length = 365):
     # match in increments of the interval (default 365).  This is the length of each epoch. 
     epoch_cutoffs = [min_date + timedelta(days = x) for x in date_range] # The times that
     # divide the matches into each epoch.
-    epoch_ranges = zip(epoch_cutoffs[0:-2],epoch_cutoffs[1:-1]) # each epoch will include matches
+    epoch_ranges = zip(epoch_cutoffs[0:-1],epoch_cutoffs[1:]) # each epoch will include matches
     # greater than or equal to the first element, less than the second element for the zip
     # generator's respective item.
     players_dict = {} # instantiate the dictionary that will hold a PlayerElo() class for each player.
@@ -102,7 +102,7 @@ def epochsElo(match_history, interval_length = 365):
             ratings_history.update(ratings_timestamp)
     # get the final rating period updates (for matches in the final 365 to 729 days).
     rating_period = match_history[match_history['tourney_date']>=epoch_cutoffs[-1]]
-    players_dict, ratings_timestamp = epochElo(rating_period,players_dict,epoch_cutoffs[-1])
+    players_dict, ratings_timestamp = epochElo(rating_period,players_dict,max_date)
     ratings_history.update(ratings_timestamp)
     return players_dict,ratings_history
 
@@ -217,3 +217,12 @@ def assembleDf(ratingHistory):
         r,c = key[1],key[0]
         df.loc[r,c] = ratingHistory[key]
     return df
+
+def get_recent_rating_wp(ratingsHistory_df,tourney_date,winner_id,loser_id):
+    if not type(tourney_date) == pd._libs.tslibs.timestamps.Timestamp:
+        tourney_date = datetime.strptime(tourney_date, '%Y-%m-%d').date()
+
+    timestamp = max(ratingsHistory_df.index[ratingsHistory_df.index<=tourney_date])
+    winner_rating, loser_rating = ratingsHistory_df.loc[timestamp,[winner_id,loser_id]]
+    wp = 1/(1 + 10**((loser_rating-winner_rating)/400))
+    return winner_rating, loser_rating, wp
