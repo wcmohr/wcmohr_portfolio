@@ -220,8 +220,7 @@ def assembleDf(ratingHistory):
 
 def get_recent_rating_wp(ratingsHistory_df,tourney_date,winner_id,loser_id):
     if not type(tourney_date) == pd._libs.tslibs.timestamps.Timestamp:
-        tourney_date = datetime.strptime(tourney_date, '%Y-%m-%d').date()
-
+        tourney_date = pd.to_datetime(tourney_date)
     timestamp = max(ratingsHistory_df.index[ratingsHistory_df.index<=tourney_date])
     winner_rating, loser_rating = ratingsHistory_df.loc[timestamp,[winner_id,loser_id]]
     wp = 1/(1 + 10**((loser_rating-winner_rating)/400))
