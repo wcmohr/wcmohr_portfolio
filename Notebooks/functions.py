@@ -180,7 +180,6 @@ def epochsG(match_history, players_dict, interval_length = 365):
     # greater than or equal to the first element, less than the second element for the zip
     # generator's respective item.
     # print([r for r in epoch_ranges])
-    players_dict = players_dict # instantiate the dictionary that will hold a Player() class for each player.
     ratings_history = {}
 
     # iteratively re-update for each epoch
