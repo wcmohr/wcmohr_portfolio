@@ -156,7 +156,7 @@ def epochG(matches, players_dict,cutoff_date):
     for player in list(results.keys()):
         (rating_list, RD_list, outcome_list) = results[player]
         players_dict[player].update_player(rating_list, RD_list, outcome_list)
-        ratings_timestamp[(player,cutoff_date)] = players_dict[player].getRating()
+        ratings_timestamp[(player,cutoff_date)] = (players_dict[player].getRating(), players_dict[player].getRd()) 
         
     return players_dict,ratings_timestamp
 
@@ -176,7 +176,7 @@ def epochsG(match_history, interval_length = 365):
     # match in increments of the interval (default 365).  This is the length of each epoch. 
     epoch_cutoffs = [min_date + timedelta(days = x) for x in date_range] # The times that
     # divide the matches into each epoch.
-    epoch_ranges = zip(epoch_cutoffs[0:-2],epoch_cutoffs[1:-1]) # each epoch will include matches
+    epoch_ranges = zip(epoch_cutoffs[0:-1],epoch_cutoffs[1:]) # each epoch will include matches
     # greater than or equal to the first element, less than the second element for the zip
     # generator's respective item.
     # print([r for r in epoch_ranges])
