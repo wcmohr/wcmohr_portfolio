@@ -158,10 +158,15 @@ def epochG(matches, players_dict,cutoff_date):
         results[player] = (opponent_rating, opponent_rd, outcomes)
     
     ratings_timestamp = {}
-    # update players
-    for player in list(results.keys()):
-        (rating_list, RD_list, outcome_list) = results[player]
-        players_dict[player].update_player(rating_list, RD_list, outcome_list)
+    # update players, catch zerodivision, overflow errors in which case create timestamp with previous rating
+    try:
+        for player in list(results.keys()):
+            (rating_list, RD_list, outcome_list) = results[player]
+            players_dict[player].update_player(rating_list, RD_list, outcome_list)
+            ratings_timestamp[(player,cutoff_date)] = (players_dict[player].getRating(), players_dict[player].getRd()) 
+    except ZeroDivisionError: 
+        ratings_timestamp[(player,cutoff_date)] = (players_dict[player].getRating(), players_dict[player].getRd()) 
+    except OverflowError: 
         ratings_timestamp[(player,cutoff_date)] = (players_dict[player].getRating(), players_dict[player].getRd()) 
         
     return players_dict,ratings_timestamp
