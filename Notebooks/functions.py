@@ -124,7 +124,6 @@ def epochG(matches, players_dict,cutoff_date):
     # update list of instantiated players
     # update dictionary of instantiated players
     players_dict.update(new_players)
-    # print(type(players_dict))
     # determine who competed and who didn't
     players_dnc = list(set(players_list) - set(players))
     players_compete = players
