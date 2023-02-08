@@ -55,6 +55,7 @@ def epochElo(matches, players_dict, cutoff_date):
     
     # fill dictionary with player:(wins,losses), a tuple of list of opponents in wins and losses for each match
     results = {}
+  
     for player in players_compete:
         wins = [winner for winner in matches[matches['winner_id']==player]['loser_id']]
         losses = [loser for loser in matches[matches['loser_id']== player]['winner_id']]
@@ -67,8 +68,14 @@ def epochElo(matches, players_dict, cutoff_date):
     # update players
     for player in list(results.keys()):
         (rating_list, outcome_list) = results[player]
-        players_dict[player].update_player(rating_list,outcome_list)
-        ratings_timestamp[(player,cutoff_date)] = players_dict[player].getRating()
+          # math range error, float division by zero workaround creates a timestamp without updating the player.
+        try:
+            players_dict[player].update_player(rating_list,outcome_list)
+            ratings_timestamp[(player,cutoff_date)] = players_dict[player].getRating()
+        except OverflowError:
+            ratings_timestamp[(player,cutoff_date)] = players_dict[player].getRating()
+        except ZeroDivisionError:
+            ratings_timestamp[(player,cutoff_date)] = players_dict[player].getRating()
     return players_dict,ratings_timestamp
 
 def epochsElo(match_history, interval_length = 365):
