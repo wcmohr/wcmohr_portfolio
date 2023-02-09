@@ -150,7 +150,6 @@ def epochG(matches, players_dict,cutoff_date):
         wins_rd = [players_dict[win].getRd() for win in wins]
         outcomes = np.append(np.ones(len(wins)),np.zeros(len(losses)))
         opponent_rating = wins_rating + losses_rating
-        # print(f'{opponent_rating=}')
         opponent_rd = wins_rd + losses_rd
         results[player] = (opponent_rating, opponent_rd, outcomes)
     
@@ -204,7 +203,6 @@ def epochsG(match_history, players_dict, interval_length = 365):
                 players_dict[player].did_not_compete()
     # get the final rating period updates (for matches in the final 365 to 729 days).
     rating_period = match_history[match_history['tourney_date']>=epoch_cutoffs[-1]]
-    
     players_dict,ratings_timestamp = epochG(rating_period,players_dict,max_date)
     ratings_history.update(ratings_timestamp)
     return players_dict, ratings_history
