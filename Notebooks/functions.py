@@ -8,6 +8,7 @@ from pyglicko2.glicko2 import Player
 from datetime import datetime, timedelta
 
 class PlayerElo:
+    """Holds, sets, and updates elo ratings."""
     # initialize the update rate
     _k = 16 
     def getRating(self):
@@ -27,13 +28,9 @@ class PlayerElo:
         self.__rating = self.__rating + _k*(actual_wins - expected_wins)
 
 def epochElo(matches, players_dict, cutoff_date):
-    '''Take in a dataframe with matches, a list of players, a dictionary of players 
-    with the elements
-    of player list as keys and an instance of the glicko2 class Player() as the value.
+    '''Take in a dataframe with matches, a list of players, a dictionary of players with the elements
+    of player list as keys and an instance of the class PlayerElo() as the value.
     This function wll return the updated players_list and players_dict.
-    
-    Future iterations of this function should do away with the p_ , and only should need the 
-    players_dict with the keys as integers indicating the player id.
     '''
     players_list = list(players_dict.keys())
     players = [p for p in np.append(matches['winner_id'].unique(),\
