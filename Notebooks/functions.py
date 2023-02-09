@@ -161,9 +161,15 @@ def epochG(matches, players_dict,cutoff_date):
             players_dict[player].update_player(rating_list, RD_list, outcome_list)
             ratings_timestamp[(player,cutoff_date)] = (players_dict[player].getRating(), players_dict[player].getRd()) 
     except ZeroDivisionError: 
-        ratings_timestamp[(player,cutoff_date)] = (players_dict[player].getRating(), players_dict[player].getRd()) 
+        ratings_timestamp[(player,cutoff_date)] = (players_dict[player].getRating(), players_dict[player].getRd())
+        print('ZeroDivisionError')
+        print(player)
+        print(players_dict[player])
     except OverflowError: 
         ratings_timestamp[(player,cutoff_date)] = (players_dict[player].getRating(), players_dict[player].getRd()) 
+        print('OverflowError')
+        print(player)
+        print(players_dict[player])
         
     return players_dict,ratings_timestamp
 
