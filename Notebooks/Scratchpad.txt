@@ -1,1 +1,7 @@
 Map real rankings to expected elo
+
+No errors should be seen
+All imports in the first cell
+If possible, avoid pink warning messages (not always easy or possible but worth the effort)
+Avoid overflowing output whenever/wherever possible
+Comments, markdown, docstrings, etc.
