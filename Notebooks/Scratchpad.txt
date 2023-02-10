@@ -1,0 +1,1 @@
+Map real rankings to expected elo
