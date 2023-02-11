@@ -6,6 +6,7 @@ import sys
 sys.path.append('..')
 from pyglicko2.glicko2 import Player
 from datetime import datetime, timedelta
+import math
 
 class PlayerElo:
     """Holds, sets, and updates elo ratings."""
