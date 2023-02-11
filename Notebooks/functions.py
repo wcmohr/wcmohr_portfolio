@@ -213,6 +213,23 @@ def epochsG(match_history, players_dict, interval_length = 365):
     ratings_history.update(ratings_timestamp)
     return players_dict, ratings_history
 
+
+# Glicko-2 probability calculation inspired by [chess_in_sgv](https://www.reddit.com/r/chess/comments/i0pnv1/glicko2_win_probability/) but scrapped in favor of the direct adaptation from E in step 3 of [glicko 2 example](https://www.glicko.net/glicko/glicko2.pdf) by Mark Glickman.
+
+def winProbG(r1, rd1, r2, rd2):
+    """Calculate the probability that player 1 defeats 
+    player 2 based on Glicko2 rating and rating deviations"""
+    r1 = (r1 - 1500)/173.7178
+    r2 = (r2 - 1500)/173.7178
+    rd1 = rd1/173.7178
+    rd2 = rd2/173.7178
+    rds = (rd1**2 + rd2**2)**.5
+    g_phi = 1 / (1 + 3 * (rds**2) / math.pi**2)
+    # x = (rd1**2 + rd2**2)
+    # A = 1 / (1 + 3 * (x**2) / math.pi**2) * (r1-r2)
+    E1 = 1/(1+math.e ** (-g_phi*(r1-r2)))
+    return E1
+
 def assembleDf(ratingHistory):
     '''Generate a DataFrame from the ratingHistory dictionary.
     The cuttoff dates for each rating period is the rows and 
@@ -230,9 +247,31 @@ def assembleDf(ratingHistory):
     return df
 
 def get_recent_rating_wp(ratingsHistory_df,tourney_date,winner_id,loser_id):
+    """Takes in a DataFrame of ratings history, tournament date, winner id and loser id
+    and returns the winner's and loser's Elo rating as well as the win probability."""
+    
     if not type(tourney_date) == pd._libs.tslibs.timestamps.Timestamp:
         tourney_date = pd.to_datetime(tourney_date)
     timestamp = max(ratingsHistory_df.index[ratingsHistory_df.index<=tourney_date])
     winner_rating, loser_rating = ratingsHistory_df.loc[timestamp,[winner_id,loser_id]]
     wp = 1/(1 + 10**((loser_rating-winner_rating)/400))
     return winner_rating, loser_rating, wp
+
+def get_recent_rating_rd_wp(tourney_date, winner_id, loser_id, **kwargs):
+    """Return the most recent ratings and rating deviations for the competitors as
+        well as the a priori win probability for the eventual winner according to 
+        the Glicko-2 rating system. **kwargs : ratingsHistory_df,rdHistory_df"""
+    ratingsHistory_df = kwargs['ratingsHistory_df']
+    rdHistory_df = kwargs['rdHistory_df']
+    try:
+        if not type(tourney_date) == pd._libs.tslibs.timestamps.Timestamp:
+            tourney_date = pd.to_datetime(tourney_date)
+        # for robustness, assuming that rd and ratings may have different timestamps
+        timestamp_rh = max(ratingsHistory_df.index[ratingsHistory_df.index<=tourney_date])
+        timestamp_rd = max(rdHistory_df.index[rdHistory_df.index<=tourney_date])
+        winner_rating, loser_rating = ratingsHistory_df.loc[timestamp_rh,[winner_id,loser_id]]
+        winner_rd, loser_rd = rdHistory_df.loc[timestamp_rd,[winner_id,loser_id]]
+        wp = winProbG(winner_rating, winner_rd, loser_rating, loser_rd)
+        return winner_rating, winner_rd, loser_rating, loser_rd, wp
+    except KeyError:
+        return np.nan, np.nan, np.nan, np.nan,np.nan
