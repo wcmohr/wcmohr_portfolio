@@ -258,21 +258,37 @@ def get_recent_rating_wp(ratingsHistory_df,tourney_date,winner_id,loser_id):
     wp = 1/(1 + 10**((loser_rating-winner_rating)/400))
     return winner_rating, loser_rating, wp
 
-def get_recent_rating_rd_wp(tourney_date, winner_id, loser_id, **kwargs):
-    """Return the most recent ratings and rating deviations for the competitors as
+def get_recent_rating_rd_wp_lambda(tourney_date, winner_id, loser_id,
+                                   ratingsHistory_df, rdHistory_df):
+    """Return the most recent ratings and rating deviations for the competitors in a match as
         well as the a priori win probability for the eventual winner according to 
-        the Glicko-2 rating system. **kwargs : ratingsHistory_df,rdHistory_df"""
-    ratingsHistory_df = kwargs['ratingsHistory_df']
-    rdHistory_df = kwargs['rdHistory_df']
+        the Glicko-2 rating system."""
     try:
         if not type(tourney_date) == pd._libs.tslibs.timestamps.Timestamp:
             tourney_date = pd.to_datetime(tourney_date)
         # for robustness, assuming that rd and ratings may have different timestamps
-        timestamp_rh = max(ratingsHistory_df.index[ratingsHistory_df.index<=tourney_date])
+        timestamp_rh = max(ratingsHistory_df.index[ratingsHistory_df.index<=
+                                                   tourney_date])
         timestamp_rd = max(rdHistory_df.index[rdHistory_df.index<=tourney_date])
-        winner_rating, loser_rating = ratingsHistory_df.loc[timestamp_rh,[winner_id,loser_id]]
-        winner_rd, loser_rd = rdHistory_df.loc[timestamp_rd,[winner_id,loser_id]]
+        winner_rating, loser_rating = ratingsHistory_df.loc[timestamp_rh,
+                                                        [winner_id,loser_id]]
+        winner_rd, loser_rd = rdHistory_df.loc[timestamp_rd,
+                                                [winner_id,loser_id]]
         wp = winProbG(winner_rating, winner_rd, loser_rating, loser_rd)
         return winner_rating, winner_rd, loser_rating, loser_rd, wp
     except KeyError:
         return np.nan, np.nan, np.nan, np.nan,np.nan
+    
+def ceildiv(a, b):
+    return -(a // -b)
+
+def splitBatch(atuple, divisions):
+    '''Break up batches into smaller pieces to allow epochsG to run.'''
+    batch_size = ceildiv((atuple[1] - atuple[0]),divisions)
+    if batch_size < (atuple[1] - atuple[0]):
+        batches = [b for b in zip(range(atuple[0],atuple[1]-batch_size,batch_size),
+             range(atuple[0]+batch_size,atuple[1],batch_size))]
+        extra = [(batches[-1][1],atuple[1])]
+        return batches + extra
+    else:
+        return atuple
