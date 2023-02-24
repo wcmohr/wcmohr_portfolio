@@ -1,4 +1,5 @@
-# wcmohr.github.io
+Will's Data Science Portfolio
+=============================
 Welcome to my Portfolio!  Here you will be able to perouse various projects that I have worked on.  Featured are:
   1.  An investigation into standardized testing participation and scores.
   2.  Prediction of housing prices.
